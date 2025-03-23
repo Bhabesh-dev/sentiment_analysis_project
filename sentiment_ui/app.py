@@ -3,6 +3,8 @@ import requests
 
 # API endpoints
 API_URL = "http://127.0.0.1:8000/analyze"
+FEEDBACK_URL = "http://127.0.0.1:8000/feedback"
+FINE_TUNE_URL = "http://127.0.0.1:8000/fine-tune"
 UPLOAD_URL = "http://127.0.0.1:8000/upload"
 
 def main():
@@ -30,6 +32,19 @@ def main():
                 st.subheader("Results")
                 st.write(f"**Sentiment Score:** {sentiment_score}")
                 st.write(f"**Category:** {category}")
+
+                # Feedback section
+                st.write("---")
+                st.subheader("Provide Feedback")
+                correct_category = st.text_input("If the category is incorrect, enter the correct category:")
+                if st.button("Submit Feedback"):
+                    if correct_category:
+                        feedback_payload = {"text": text_input, "correct_category": correct_category}
+                        feedback_response = requests.post(FEEDBACK_URL, json=feedback_payload)
+                        feedback_response.raise_for_status()
+                        st.success("Feedback submitted successfully!")
+                    else:
+                        st.error("Please enter a correct category.")
             except requests.exceptions.RequestException as e:
                 st.error(f"Error connecting to the API: {e}")
         else:
@@ -54,6 +69,17 @@ def main():
             st.write(f"**Category:** {result['category']}")
         except requests.exceptions.RequestException as e:
             st.error(f"Error uploading file: {e}")
+
+    # Fine-tune button
+    st.write("---")
+    st.subheader("Fine-Tune Model")
+    if st.button("Fine-Tune Model"):
+        try:
+            response = requests.post(FINE_TUNE_URL)
+            response.raise_for_status()
+            st.success("Model fine-tuned successfully!")
+        except requests.exceptions.RequestException as e:
+            st.error(f"Error fine-tuning model: {e}")
 
 if __name__ == "__main__":
     main()

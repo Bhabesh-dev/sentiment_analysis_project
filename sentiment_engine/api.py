@@ -9,6 +9,10 @@ engine = SentimentAnalysisEngine()
 class AnalyzeRequest(BaseModel):
     text: str
 
+class FeedbackRequest(BaseModel):
+    text: str
+    correct_category: str
+
 @app.post("/analyze")
 async def analyze(request: AnalyzeRequest):
     """
@@ -17,6 +21,24 @@ async def analyze(request: AnalyzeRequest):
     """
     sentiment_score, category = engine.analyze(request.text)
     return {"sentiment_score": sentiment_score, "category": category}
+
+@app.post("/feedback")
+async def feedback(request: FeedbackRequest):
+    """
+    Provide feedback to improve the model.
+    - **text**: The input text.
+    - **correct_category**: The correct category for the text.
+    """
+    engine.add_feedback(request.text, request.correct_category)
+    return {"message": "Feedback received."}
+
+@app.post("/fine-tune")
+async def fine_tune():
+    """
+    Fine-tune the model using the feedback data.
+    """
+    engine.fine_tune()
+    return {"message": "Model fine-tuned."}
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -31,4 +53,4 @@ async def upload_file(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
